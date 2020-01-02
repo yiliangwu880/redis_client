@@ -1,0 +1,3 @@
+
+#ADD_SUBDIRECTORY(test_asyn)
+ADD_SUBDIRECTORY(test_syn)
