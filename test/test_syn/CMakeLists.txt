@@ -18,9 +18,13 @@ file(GLOB_RECURSE SRCS2  ${PROJECT_SOURCE_DIR} "*.cpp")
 file(GLOB_RECURSE SRCS3  ${PROJECT_SOURCE_DIR} "../com/*.cpp")
 
 SET(EXECUTABLE_OUTPUT_PATH ${CMAKE_SOURCE_DIR}/bin/${project_name})
+
+
+
 # 指定生成目标
 ADD_EXECUTABLE(${project_name} ${SRCS2} ${SRCS3})
 
+add_dependencies(${project_name} libhiredis.a redis_client)
 # 设置链接库
-target_link_libraries(${project_name} libcevent_cpp.a redis_client)
+target_link_libraries(${project_name} redis_client libhiredis.a  libcevent_cpp.a)
 

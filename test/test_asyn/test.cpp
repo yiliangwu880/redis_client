@@ -1,271 +1,117 @@
 /*
-测试dbproxy_svr是否又内存泄漏。
-随机长期运行的方法测试。
+
 */
 
 #include <string>
 #include "libevent_cpp/include/include_all.h"
-#include "svr_util/include/su_mgr.h"
-#include "svr_util/include/single_progress.h"
-#include "svr_util/include/read_cfg.h"
-#include "svr_util/include/su_rand.h"
 #include "unit_test.h"
-#include "../db_driver/include/db_driver.h"
-#include "../com/cfg.h"
-#include "proto/test_data.pb.h"
+#include "redis_client.h"
 
 using namespace std;
-using namespace su;
-using namespace db;
 using namespace lc;
 
+static const char *REDIS_IP = "192.168.1.204";
+static const short REDIS_PORT = 8309;
 
 namespace
 {
-	class DbMgr : public db::BaseDbproxy
+	class MyAsy : public RedisAsynCon
 	{
-	public:
-		enum State
-		{
-			WAIT_CONNECT,
-			WAIT_DROP_TABLE, //删除上次测试的table
-			WAIT_INIT_TALBE,
-
-			WAIT_RANDOM_END,
-		};
-		State m_state;
-		TestTable m_msg;
-		SubMsg m_sub;
-		TTT3 m_t;
-		TTT2 m_t2;
-		TTT1 m_t1;
-		lc::Timer m_tm; //random handle timer
-	public:
-		DbMgr();
-
-		void Start();
-		void StartInitTable();
-		void RandomReq();
+		int m_step = 1;
+	private:
 
 		virtual void OnCon();
-		virtual void OnDiscon();
-		virtual void OnRspInitTable(bool is_ok);
-		virtual void OnRspInsert(const db::RspInsertData &rsp);
-		virtual void OnRspUpdate(const db::RspUpdateData &rsp);
-		virtual void OnRspGet(const db::RspGetData &rsp);
-		virtual void OnRspDel(const db::RspDelData &rsp);
-		virtual void OnRspSql(bool is_ok);
+		virtual void OnDisCon();
+		virtual void OnRev(const redisReply *reply, void *privdata); //reply 回调函数结束后，自动释放
+
 	};
 
-
-
-
-	DbMgr::DbMgr()
-	{
-
-		m_msg.set_id(1);
-		m_msg.set_name_32(1);
-		m_msg.set_name_str("a");
-		m_msg.set_name_enum(T1);
-		m_msg.set_name_bool(true);
-		m_msg.set_name_bytes("a", 1);
-
-		m_sub.set_id(1);
-		m_sub.set_name_enum(T1);
-		m_sub.set_name_bool(true);
-
-		m_t.set_id(1);
-		m_t.set_name("abc");
-		m_t.mutable_sub_msg()->CopyFrom(m_sub);
-		m_t.set_t23("a");
-
-		m_t1.set_id(2);
-		m_t1.set_t23("ab");
-
-		m_t2.set_id("ab");
-		m_t2.set_t(3);
-	}
-
-
-	void DbMgr::Start()
-	{
-		m_state = WAIT_CONNECT;
-		UNIT_INFO("connect %s %d", CfgMgr::Obj().dbproxy_svr_ip.c_str(), CfgMgr::Obj().dbproxy_svr_port);
-		Connect(CfgMgr::Obj().dbproxy_svr_ip, CfgMgr::Obj().dbproxy_svr_port);
-	}
-
-
-	void DbMgr::StartInitTable()
-	{
-		m_state = WAIT_INIT_TALBE;
-		ReqInitTable req;
-		//TestTable a;
-		req.add_msg_name("TestTable");
-		req.add_msg_name("TTT1");
-		req.add_msg_name("TTT2");
-		req.add_msg_name("TTT3");
-		InitTable(req);
-	}
-
-
-	void DbMgr::OnCon()
-	{
-		UNIT_ASSERT(m_state == WAIT_CONNECT);
-		m_state = WAIT_DROP_TABLE;
-		ExecuteSql("DROP TABLE TTT3");
-		ExecuteSql("DROP TABLE TestTable");
-	}
-
-
-	void DbMgr::OnDiscon()
-	{
-		UNIT_INFO("OnDiscon");
-	}
-
-
-	void DbMgr::OnRspInitTable(bool is_ok)
-	{
-		UNIT_ASSERT(WAIT_INIT_TALBE == m_state);
-
-		m_state = WAIT_RANDOM_END;
-		UNIT_INFO("start timer");
-		m_tm.StartTimer(5, std::bind(&DbMgr::RandomReq, this), true);
-	}
-
-	void DbMgr::RandomReq()
-	{
-		//UNIT_INFO("r");
-		uint32 r = Random::RandUint32(0, 14);
-		switch (r)
-		{
-		case 14:
-		{
-			Insert(m_t1);
-		}
-		break;
-		case 13:
-		{
-			Insert(m_t2);
-		}
-		break;
-		case 12:
-		{
-			Update(m_t1);
-		}
-		break;
-		case 11:
-		{
-			Update(m_t2);
-		}
-		break;
-		case 10:
-		{
-			Update(m_t);
-		}
-		break;
-		case 0:
-		{
-			Insert(m_msg);
-		}
-		break;
-		case 1:
-		{
-			Insert(m_t);
-		}
-		break;
-		case 2:
-		{
-			Get<TestTable>("id=1");
-
-		}
-		break;
-		case 3:
-		{
-			Get<TTT3>("name='abc'");
-
-		}
-		break;
-		case 4:
-		{
-			Del<TestTable>(1);
-
-		}
-		break;
-		case 5:
-		{
-			Del<TTT3>("abc");
-
-		}
-		break;
-		case 6:
-		{
-			Get<TestTable>("id=2");
-
-		}
-		break;
-		case 7:
-		{
-			ExecuteSql("INSERT INTO `TestTable` VALUES ('2', null, '11', null, null, null, null, null)");
-
-		}
-		break;
-		case 8:
-		{
-
-			ExecuteSql("delete from TestTable where id=2");
-		}
-		break;
-		case 9:
-		{
-			Update(m_msg);
-		}
-		break;
-		default:
-			UNIT_ASSERT(false);
-			break;
-		}
-	}
-
-
-	void DbMgr::OnRspInsert(const db::RspInsertData &rsp)
-	{
-	}
-
-
-	void DbMgr::OnRspUpdate(const db::RspUpdateData &rsp)
+	void MyAsy::OnCon()
 	{
 
 	}
 
-	void DbMgr::OnRspGet(const db::RspGetData &rsp)
+
+	void MyAsy::OnDisCon()
 	{
 
 	}
 
-	void DbMgr::OnRspDel(const db::RspDelData &rsp)
+
+	void MyAsy::OnRev(const redisReply *reply, void *privdata)
 	{
+		UNIT_ASSERT(reply);
+		UNIT_INFO("step : %d", m_step)
+			switch (m_step)
+			{
+			default:
+				UNIT_ASSERT(false);
+				break;
+			case 1:
+				UNIT_INFO("rev: %s", reply->str);
+				UNIT_ASSERT(string("PONG") == reply->str);
+				Command(nullptr, "select 5");
+				UNIT_INFO("req select 5");
+				break;
+			case 2:
+				UNIT_INFO("rev: %s", reply->str);
+				UNIT_ASSERT(string("OK") == reply->str);
+				Command(nullptr, "SET runoobkey redis");
+				break;
+			case 3:
+				UNIT_ASSERT(string("OK") == reply->str);
+				Command(nullptr, "GET runoobkey");
+				break;
+			case 4:
+				UNIT_ASSERT(string("redis") == reply->str);
+				Command(nullptr, "HMSET hset name1 redis name2 abc");
+				break;
+			case 5:
+				UNIT_ASSERT(string("OK") == reply->str);
+				Command(nullptr, "HGETALL hset");
+				break;
+			case 6:
+				if (reply->type == REDIS_REPLY_ARRAY) {
+					for (uint32 j = 0; j < reply->elements; j++) {
+						UNIT_INFO("%s", reply->element[j]->str);
+					}
+				}
+				UNIT_ASSERT(string("redis") == reply->element[1]->str);
+				Command(nullptr, "del hset");
+
+				Command(nullptr, "del runoobkey");
+				break;
+			case 7:
+				UNIT_ASSERT(1 == reply->integer);
+				break;
+			case 8:
+				UNIT_ASSERT(1 == reply->integer);
+				break;
+			}
+			m_step++;
 
 	}
 
-	void DbMgr::OnRspSql(bool is_ok)
-	{
-		if (WAIT_DROP_TABLE == m_state)
-		{
-			StartInitTable();
-		}
-	}
+	MyAsy g_asynCon;
 }
 
-UNITTEST(test_leak)
+UNITTEST(test_syn)
 {
-	UNIT_ASSERT(CfgMgr::Obj().Init());
-	SuMgr::Obj().Init();
 	EventMgr::Obj().Init();
 
-	DbMgr db;
-	db.Start();
+	lc::Timer tm;
+	auto f = []() {
+		g_asynCon.Dicon();
+		EventMgr::Obj().StopDispatch();
+	};
+	tm.StartTimer(1000, f);
 
+	bool r = g_asynCon.Init(EventMgr::Obj().GetEventBase(), REDIS_IP, REDIS_PORT);
+	UNIT_ASSERT(r);
+
+
+	g_asynCon.Command(nullptr, "PING");
 	EventMgr::Obj().Dispatch();
-	UNIT_INFO("--------------------test_leak end--------------------");
+	UNIT_INFO("-------------------- end--------------------");
 
 }

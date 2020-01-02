@@ -54,28 +54,28 @@ function Init()
     done
 }
 
-
-function test_mysql()
+function test_asyn()
 {
-	KillProcess "dbproxy_svr"
-	KillProcess "test_mysql"
-	sleep 1
-	cd dbproxy_svr
-	./dbproxy_svr 
+	echo start test_asyn
+	cd test_asyn
+	./test_asyn > OutLog.txt
 	cd -
-	sleep 1
 	
-	echo start test_mysql
-	cd test_mysql
-	./test_mysql > OutLog.txt
+	echo test_asyn end
+	
+	grep "ERROR\|error" ./test_asyn/OutLog.txt >>  error.txt  #追加
+}
+
+function test_syn()
+{
+	echo start test_syn
+	cd test_syn
+	./test_syn > OutLog.txt
 	cd -
-	sleep 1
 	
-	KillProcess "./dbproxy_svr"
-	echo test_mysql end
+	echo test_syn end
 	
-	grep "ERROR\|error" ./test_mysql/OutLog.txt >>  error.txt  #追加
-	grep "ERROR\|error" ./dbproxy_svr/svr_util_log.txt >>  error.txt 
+	grep "ERROR\|error" ./test_syn/OutLog.txt >>  error.txt  #追加
 }
 
 
@@ -85,7 +85,8 @@ function test_mysql()
 if [ $# -lt 1 ];then
 	echo "run all"
 	Init
-	test_mysql
+	test_syn
+	test_asyn
 else
     echo "run submodue" $1
 	Init

@@ -29,10 +29,8 @@ UnitTestMgr::Obj().Start();
 #include <stdarg.h>
 #include <map>
 
-namespace{
-static const char *REDIS_IP = "192.168.1.204";
-static const short REDIS_PORT = 8309;
-}
+
+
 class IUnitTest
 {
 public:
