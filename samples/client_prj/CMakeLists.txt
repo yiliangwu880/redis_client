@@ -1,16 +1,15 @@
 # CMake 最低版本号要求
 cmake_minimum_required (VERSION 2.8)
 
+set(project_name "client_prj")
 # 项目信息
-project (client_prj CXX)
-
-configure_file("version.h.in" "${PROJECT_SOURCE_DIR}/version.h")
+project (${project_name} CXX)
 
 # include directories
 INCLUDE_DIRECTORIES(system ../../include/)
 INCLUDE_DIRECTORIES(after  ${PROJECT_SOURCE_DIR})
 INCLUDE_DIRECTORIES(after  ${PROJECT_SOURCE_DIR}/../base/)
-INCLUDE_DIRECTORIES(after  ${PROJECT_SOURCE_DIR}/../libevent_cpp/include/)
+INCLUDE_DIRECTORIES(after  ${PROJECT_SOURCE_DIR}/../external/)
 
 
 # 查找当前目录下的所有源文件
@@ -19,19 +18,14 @@ file(GLOB_RECURSE SRCS  ${PROJECT_SOURCE_DIR} "../base/*.cpp")
 file(GLOB_RECURSE SRCS2  ${PROJECT_SOURCE_DIR} "*.cc")
 
 # 指定生成目标
-ADD_EXECUTABLE(s_client  ${SRCS}  ${SRCS2})
+ADD_EXECUTABLE(${project_name}  ${SRCS}  ${SRCS2})
 
-#设置依赖
-ADD_DEPENDENCIES(s_client  libevent_cpp)
 
-#增加系统依赖库
-ADD_library(pthread SHARED IMPORTED)
-ADD_library(crypto SHARED IMPORTED)
-
+add_dependencies(${project_name} credis_client)
 # 设置链接库
-target_link_libraries(s_client libevent_cpp libevent.a dl)
+target_link_libraries(${project_name} credis_client libcevent_cpp.a)
 
-#cotire设置gcc的预编译头相关			
-set_target_properties(s_client  PROPERTIES COTIRE_CXX_PREFIX_HEADER_INIT "stdafx.h")
-cotire(s_client )
+
+
+
 

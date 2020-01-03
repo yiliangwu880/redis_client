@@ -35,14 +35,31 @@ RedisCon::~RedisCon()
 	redisFree(m_c); //Disconnects and frees the context 
 }
 
-RedisCon::UNIQUE_PTR RedisCon::Cmd(const std::string& cmd)
+RedisCon::UNIQUE_PTR RedisCon::Cmd(const char *format, ...)
 {
-	redisReply *p = (redisReply *)redisCommand(m_c, cmd.c_str());
+	va_list ap;
+	va_start(ap, format);
+
+	redisReply *p = (redisReply *)redisvCommand(m_c, format, ap);
 	if (nullptr == p)
 	{
 		return UNIQUE_PTR(nullptr, &RedisCon::FreeReplyObject);
 	}
 	UNIQUE_PTR unique_p(p, RedisCon::FreeReplyObject);
+
+	va_end(ap);
+	return unique_p; //对象所有权会传给返回值
+}
+
+RedisCon::UNIQUE_PTR RedisCon::Cmd(int argc, const char **argv, const size_t *argvlen)
+{
+	redisReply *p = (redisReply *)redisCommandArgv(m_c, argc, argv, argvlen);
+	if (nullptr == p)
+	{
+		return UNIQUE_PTR(nullptr, &RedisCon::FreeReplyObject);
+	}
+	UNIQUE_PTR unique_p(p, RedisCon::FreeReplyObject);
+
 	return unique_p; //对象所有权会传给返回值
 }
 

@@ -19,17 +19,20 @@ class RedisCon
 private:
 	redisContext *m_c = nullptr;
 
-public:
+private:
 	static void FreeReplyObject(redisReply *p);
-	~RedisCon();
-	bool Init(const std::string &ip, uint16_t port, uint32_t wait_sec=5);
 
+public:
 	using UNIQUE_PTR = std::unique_ptr<redisReply, decltype(&RedisCon::FreeReplyObject)>;
 
+	~RedisCon();
+	bool Init(const std::string &ip, uint16_t port, uint32_t wait_sec=5);
 	//请求命令
 	//返回 redisReply *的unique_ptr,   返回值作用域结束，自动释放内存
 	//注意：反回值使用先判空，语法 nullptr != p.get() 
-	UNIQUE_PTR Cmd(const std::string& cmd);
+	UNIQUE_PTR Cmd(const char *format, ...);
+	UNIQUE_PTR Cmd(int argc, const char **argv, const size_t *argvlen);
+
 };
 
 //libevent异步方式

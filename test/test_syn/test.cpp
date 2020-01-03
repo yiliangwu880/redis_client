@@ -8,100 +8,59 @@
 #include "redis_client.h"
 
 using namespace std;
-using namespace lc;
 
 static const char *REDIS_IP = "192.168.1.204";
 static const short REDIS_PORT = 8309;
 
 namespace
 {
-	class MyAsy : public RedisAsynCon
-	{
-		int m_step = 1;
-	private:
-
-		virtual void OnCon() ;
-		virtual void OnDisCon() ;
-		virtual void OnRev(const redisReply *reply, void *privdata) ; //reply 回调函数结束后，自动释放
-
-	};
-
-	void MyAsy::OnCon()
-	{
-
-	}
-
-
-	void MyAsy::OnDisCon()
-	{
-
-	}
-
-
-	void MyAsy::OnRev(const redisReply *reply, void *privdata)
-	{
-		UNIT_ASSERT(reply);
-		UNIT_INFO("step : %d", m_step)
-		switch (m_step)
-		{
-		default:
-			UNIT_ASSERT(false);
-			break;
-		case 1:
-			UNIT_INFO("rev: %s", reply->str);
-			UNIT_ASSERT(string("PONG")== reply->str);
-			Command(nullptr, "select 5");
-			UNIT_INFO("req select 5");
-			break;
-		case 2:
-			UNIT_INFO("rev: %s", reply->str);
-			UNIT_ASSERT(string("OK") == reply->str);
-			break;
-		}
-		m_step++;
-
-	}
-
-	MyAsy g_asynCon;
 	
-	//void  t()
-	//{
-	//		redisContext *c;
-	//		const char *hostname =  "127.0.0.1";
-	//		int port =  6379;
+	RedisCon g_con;
 
-	//		struct timeval timeout = { 1, 500000 }; // 1.5 seconds
-	//		c = redisConnectWithTimeout(hostname, port, timeout);
-	//		if (c == NULL || c->err) {
-	//			if (c) {
-	//				printf("Connection error: %s\n", c->errstr);
-	//				redisFree(c);
-	//			}
-	//			else {
-	//				printf("Connection error: can't allocate redis context\n");
-	//			}
-	//		}
-	//}
 }
 
 UNITTEST(test_syn)
 {
-	return;
-	EventMgr::Obj().Init();
+	UNIT_ASSERT(g_con.Init(REDIS_IP, REDIS_PORT));
 
-	lc::Timer tm;
-	auto f = []() {
-		g_asynCon.Dicon();
-		EventMgr::Obj().StopDispatch();
-	};
-	tm.StartTimer(1000, f);
+	
+	{
+		RedisCon::UNIQUE_PTR r = g_con.Cmd("select 5");
+		UNIT_ASSERT(r.get() != nullptr);
+		UNIT_ASSERT(string("OK") == r->str);
+	}
 
-	bool r = g_asynCon.Init(EventMgr::Obj().GetEventBase(), REDIS_IP, REDIS_PORT);
-	UNIT_ASSERT(r);
+	{
+		RedisCon::UNIQUE_PTR r = g_con.Cmd("SET %s %s", "foo", "hello world");
+		UNIT_ASSERT(string("OK") == r->str);
+	}
+	{
+		RedisCon::UNIQUE_PTR r = g_con.Cmd("get %s", "foo");
+		UNIT_ASSERT(string("hello world") == r->str);
+	}
+	{
+		RedisCon::UNIQUE_PTR r = g_con.Cmd("HMSET hset name1 redis name2 abc");
+		UNIT_ASSERT(string("OK") == r->str);
+	}
+	{
+		RedisCon::UNIQUE_PTR reply = g_con.Cmd("HGETALL hset");
+		if (reply->type == REDIS_REPLY_ARRAY) {
+			for (size_t j = 0; j < reply->elements; j++) {
+				UNIT_INFO("%s", reply->element[j]->str);
+			}
+		}
+		UNIT_ASSERT(string("redis") == reply->element[1]->str);
+	}
+	{
+		RedisCon::UNIQUE_PTR r = g_con.Cmd("del hset");
+		UNIT_ASSERT(1 == r->integer);
+	}
+	{
+		RedisCon::UNIQUE_PTR r = g_con.Cmd("del foo");
+		UNIT_ASSERT(1 == r->integer);
+	}
 
 
-	g_asynCon.Command(nullptr, "PING");
-	EventMgr::Obj().Dispatch();
 	UNIT_INFO("-------------------- end--------------------");
 
 }
