@@ -1,5 +1,5 @@
 简介：
-	演示用游戏服务器架构，验证RS里面所有组件
+	开源hiredis基础上封装成C++接口。简单易用安全。
 	
 编译：
 	整个文件夹放到linux目录，安装cmake gcc git等。
@@ -11,3 +11,7 @@
 	如果需要测试，去目录 redis_client\samples\external\libevent_cpp\ 编译出库	
 
 目录结构：
+
+
+
+

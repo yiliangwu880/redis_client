@@ -131,17 +131,19 @@ bool RedisAsynCon::Command(void *privdata, const char *format, ...)
 	return REDIS_OK == status;
 }
 
+bool RedisAsynCon::VCommand(void *privdata, const char *format, va_list ap)
+{
+	int status = redisvAsyncCommand(m_c, getCallback, privdata, format, ap);
+	return REDIS_OK == status;
+}
+
 bool RedisAsynCon::CommandArgv(void *privdata, int argc, const char **argv, const size_t *argvlen)
 {
 	int status = redisAsyncCommandArgv(m_c, getCallback, privdata, argc, argv, argvlen);
 	return REDIS_OK == status;
 }
 
-bool RedisAsynCon::FormattedCommand(void *privdata, const char *cmd, size_t len)
-{
-	int status = redisAsyncFormattedCommand(m_c, getCallback, privdata, cmd, len);
-	return REDIS_OK == status;
-}
+
 
 void RedisAsynCon::getCallback(redisAsyncContext *c, void *r, void *privdata)
 {

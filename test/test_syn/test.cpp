@@ -19,7 +19,8 @@ namespace
 
 }
 
-UNITTEST(test_syn)
+//UNITTEST(test_syn)
+void nouse_test_syn()
 {
 	UNIT_ASSERT(g_con.Init(REDIS_IP, REDIS_PORT));
 

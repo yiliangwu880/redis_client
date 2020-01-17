@@ -11,7 +11,6 @@
 #include <async.h>
 
 
-struct event_base;
 
 //阻塞同步方式
 class RedisCon
@@ -26,6 +25,7 @@ public:
 	using UNIQUE_PTR = std::unique_ptr<redisReply, decltype(&RedisCon::FreeReplyObject)>;
 
 	~RedisCon();
+	//@wait_sec 连接等待时长
 	bool Init(const std::string &ip, uint16_t port, uint32_t wait_sec=5);
 	//请求命令
 	//返回 redisReply *的unique_ptr,   返回值作用域结束，自动释放内存
@@ -35,6 +35,7 @@ public:
 
 };
 
+struct event_base;
 //libevent异步方式
 class RedisAsynCon
 {
@@ -47,10 +48,10 @@ public:
 	bool Init(event_base *base,const std::string &ip, uint16_t port);
 	void Dicon();
 
-	//@privdata 用户自定义数据，不推荐传指针，生存期，流程难控制。
+	//@privdata 用户自定义数据，不推荐传指针，生存期难控制。
 	bool Command(void *privdata, const char *format, ...);
+	bool VCommand(void *privdata, const char *format, va_list ap);
 	bool CommandArgv(void *privdata, int argc, const char **argv, const size_t *argvlen);
-	bool FormattedCommand(void *privdata, const char *cmd, size_t len);
 
 private:
 	virtual void OnCon() = 0;
