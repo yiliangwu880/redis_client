@@ -1,11 +1,12 @@
 #include "redis_client.h"
 #include <adapters/libevent.h>
+#include "log_def.h"
 
 bool RedisCon::Init(const std::string &ip, uint16_t port, uint32_t wait_sec)
 {
 	if (nullptr != m_c)
 	{
-		printf("repeated Init\n");
+		L_ERROR("repeated Init\n");
 		return false;
 	}
 
@@ -13,11 +14,11 @@ bool RedisCon::Init(const std::string &ip, uint16_t port, uint32_t wait_sec)
 	m_c = redisConnectWithTimeout(ip.c_str(), port, timeout);
 	if (m_c == nullptr)
 	{
-		printf("Connection error: can't allocate redis context\n");
+		L_ERROR("Connection error: can't allocate redis context\n");
 		return false;
 	}
 	if ( m_c->err) {
-		printf("Connection error: %s\n", m_c->errstr);
+		L_ERROR("Connection error: %s\n", m_c->errstr);
 		redisFree(m_c);
 		m_c = nullptr;
 		return false;
@@ -76,7 +77,7 @@ void RedisAsynCon::Dicon()
 	}
 	if (!m_isCanFree)
 	{
-		printf("fatal, can't free RedisAsynCon");
+		L_FATAL("fatal, can't free RedisAsynCon");
 		*((int *)(nullptr)) = 1; //故意弄宕机，比野了好。
 	}
 	redisAsyncDisconnect(m_c);
@@ -92,7 +93,7 @@ bool RedisAsynCon::Init(event_base *base, const std::string &ip, uint16_t port)
 	m_c = redisAsyncConnect(ip.c_str(), port);
 	if (m_c->err) {
 		/* Let *c leak for now... */
-		printf("Error: %s\n", m_c->errstr);
+		L_ERROR("Error: %s\n", m_c->errstr);
 		redisAsyncDisconnect(m_c);
 		m_c = nullptr;
 		return false;
@@ -157,7 +158,7 @@ void RedisAsynCon::getCallback(redisAsyncContext *c, void *r, void *privdata)
 void RedisAsynCon::connectCallback(const redisAsyncContext *c, int status)
 {
 	if (status != REDIS_OK) {
-		printf("Error: %s\n", c->errstr);
+		L_ERROR("Error: %s\n", c->errstr);
 		return;
 	}
 	RedisAsynCon *obj = (RedisAsynCon*)c->data;
@@ -169,7 +170,7 @@ void RedisAsynCon::connectCallback(const redisAsyncContext *c, int status)
 void RedisAsynCon::disconnectCallback(const redisAsyncContext *c, int status)
 {
 	if (status != REDIS_OK) {
-		printf("Error: %s\n", c->errstr);
+		L_ERROR("Error: %s\n", c->errstr);
 		return;
 	}
 	RedisAsynCon *obj = (RedisAsynCon*)c->data;

@@ -1,5 +1,6 @@
 #include "redis_parse_cmd.h"
 #include <cstring>
+#include "log_def.h"
 
 using namespace std;
 

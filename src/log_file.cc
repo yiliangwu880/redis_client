@@ -7,7 +7,7 @@
 #include <unistd.h>
 
 using namespace std;
-namespace samples
+namespace redis_com
 {
 	//缺省定义,打印到文件和标准输出
 	class DefaultLog

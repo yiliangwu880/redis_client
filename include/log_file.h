@@ -28,7 +28,7 @@ int main(int argc, char* argv[])
 #pragma once
 #include <string>
 
-namespace samples
+namespace redis_com
 {
 	enum LogLv
 	{

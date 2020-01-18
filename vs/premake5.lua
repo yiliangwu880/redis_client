@@ -8,9 +8,9 @@ local action = _ACTION or ""
 local outdir = action
 
 
-WorkSpaceInit  "prj"
+WorkSpaceInit  "redis_client"
 
-Project "prj"
+Project "redis_client"
 
 	SrcPath { 
 		"../bin/**.txt",

@@ -1,3 +1,4 @@
+#include "log_def.h"
 #include "redis_com.h"
 
 using namespace std;
@@ -70,13 +71,13 @@ namespace redis_com
 		bool r = m_com.PopReqInfo(id, info);
 		if (!r)
 		{
-			printf("err");
+			L_ERROR("PopReqInfo fail. id=%lld", id);
 			return;
 		}
 		switch (info.method)
 		{
 		default:
-			printf("err");
+			L_ERROR("unknow method: %d", info.method);
 			break;
 		case RAM::DelKey:
 			m_com.OnDelKey(info.privdata, (1 == reply->integer));
