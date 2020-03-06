@@ -75,7 +75,7 @@ void RedisAsynCon::Dicon()
 	{
 		return;
 	}
-	if (!m_isCanFree)
+	if (!m_is_can_free)
 	{
 		L_FATAL("fatal, can't free RedisAsynCon");
 		*((int *)(nullptr)) = 1; //故意弄宕机，比野了好。
@@ -150,9 +150,9 @@ void RedisAsynCon::getCallback(redisAsyncContext *c, void *r, void *privdata)
 {
 	RedisAsynCon *obj = (RedisAsynCon*)c->data;
 	redisReply *reply = (redisReply *)r;
-	obj->m_isCanFree = false; //禁止回调里面释放对象。 回调结束，系统还是引用了本对象。
+	obj->m_is_can_free = false; //禁止回调里面释放对象。 回调结束，系统还是引用了本对象。
 	obj->OnRev(reply, privdata);
-	obj->m_isCanFree = true;
+	obj->m_is_can_free = true;
 }
 
 void RedisAsynCon::connectCallback(const redisAsyncContext *c, int status)
@@ -162,9 +162,9 @@ void RedisAsynCon::connectCallback(const redisAsyncContext *c, int status)
 		return;
 	}
 	RedisAsynCon *obj = (RedisAsynCon*)c->data;
-	obj->m_isCanFree = false; //禁止回调里面释放对象。 回调结束，系统还是引用了本对象。
+	obj->m_is_can_free = false; //禁止回调里面释放对象。 回调结束，系统还是引用了本对象。
 	obj->OnCon();
-	obj->m_isCanFree = true;
+	obj->m_is_can_free = true;
 }
 
 void RedisAsynCon::disconnectCallback(const redisAsyncContext *c, int status)
@@ -174,7 +174,7 @@ void RedisAsynCon::disconnectCallback(const redisAsyncContext *c, int status)
 		return;
 	}
 	RedisAsynCon *obj = (RedisAsynCon*)c->data;
-	obj->m_isCanFree = false; //禁止回调里面释放对象。 回调结束，系统还是引用了本对象。
+	obj->m_is_can_free = false; //禁止回调里面释放对象。 回调结束，系统还是引用了本对象。
 	obj->OnDisCon();
-	obj->m_isCanFree = true;
+	obj->m_is_can_free = true;
 }

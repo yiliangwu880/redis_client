@@ -13,8 +13,8 @@ namespace redis_com
 	bool RedisCom::DelKey(const std::string &key)
 	{
 		//del runoobkey
-		RedisArgInfo arg_info;
-		RedisArgParse::Obj().DelKey(key, arg_info);
+		RedisArgParse arg_info;
+		arg_info.DelKey(key);
 		RedisCon::UNIQUE_PTR r = m_client.Cmd(arg_info.argc, arg_info.argv, arg_info.argvlen);
 		if (nullptr == r.get())
 		{
@@ -25,8 +25,8 @@ namespace redis_com
 
 	bool RedisCom::SetStr(const std::string &key, const std::string &value)
 	{
-		RedisArgInfo arg_info;
-		RedisArgParse::Obj().SetStr(key, value, arg_info);
+		RedisArgParse arg_info;
+		arg_info.SetStr(key, value);
 		RedisCon::UNIQUE_PTR r = m_client.Cmd(arg_info.argc, arg_info.argv, arg_info.argvlen);
 		if (nullptr == r.get())
 		{
@@ -38,8 +38,8 @@ namespace redis_com
 	std::string RedisCom::GetStr(const std::string &key)
 	{
 		//GET runoobkey
-		RedisArgInfo arg_info;
-		RedisArgParse::Obj().GetStr(key, arg_info);
+		RedisArgParse arg_info;
+		arg_info.GetStr(key);
 		RedisCon::UNIQUE_PTR r = m_client.Cmd(arg_info.argc, arg_info.argv, arg_info.argvlen);
 		if (nullptr == r.get())
 		{
@@ -112,8 +112,8 @@ namespace redis_com
 	bool RedisAsynCom::DelKey(void *privdata, const std::string &key)
 	{
 		//del runoobkey
-		RedisArgInfo arg_info;
-		RedisArgParse::Obj().DelKey(key, arg_info);
+		RedisArgParse arg_info;
+		arg_info.DelKey(key);
 		uint64_t id = PushReqInfo(privdata, RAM::DelKey);
 		return m_client.CommandArgv((void *)id, arg_info.argc, arg_info.argv, arg_info.argvlen);
 	}

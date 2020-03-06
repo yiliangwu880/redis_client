@@ -4,13 +4,7 @@
 
 using namespace std;
 
-RedisArgParse & RedisArgParse::Obj()
-{
-	static RedisArgParse obj;
-	return obj;
-}
-
-void RedisArgParse::DelKey(const std::string &key, RedisArgInfo &arg_info)
+void RedisArgParse::DelKey(const std::string &key)
 {
 	m_vec_pchar.clear();
 	m_vec_len.clear();
@@ -20,10 +14,11 @@ void RedisArgParse::DelKey(const std::string &key, RedisArgInfo &arg_info)
 	m_vec_pchar.push_back(key.c_str());
 	m_vec_len  .push_back(key.length());
 
-	InitRedisArgInfo(arg_info);
+	InitRedisArgInfo();
+	
 }
 
-void RedisArgParse::SetStr(const std::string &key, const std::string &value, RedisArgInfo &arg_info)
+void RedisArgParse::SetStr(const std::string &key, const std::string &value)
 {
 	//SET runoobkey redis
 
@@ -37,10 +32,11 @@ void RedisArgParse::SetStr(const std::string &key, const std::string &value, Red
 	m_vec_pchar.push_back(value.c_str());
 	m_vec_len  .push_back(value.length());
 
-	InitRedisArgInfo(arg_info);
+	InitRedisArgInfo();
+	
 }
 
-void RedisArgParse::SetHash(const std::string &key, const VecFieldValue &vec_field_value, RedisArgInfo &arg_info)
+void  RedisArgParse::SetHash(const std::string &key, const VecFieldValue &vec_field_value)
 {
 	//HMSET runoobkey name1 v1 name2 v2
 
@@ -59,10 +55,11 @@ void RedisArgParse::SetHash(const std::string &key, const VecFieldValue &vec_fie
 		m_vec_len  .push_back(v.second.length());
 	}
 
-	InitRedisArgInfo(arg_info);
+	InitRedisArgInfo();
+	
 }
 
-void RedisArgParse::SetHash(const std::string &key, const std::string &field, const std::string &value, RedisArgInfo &arg_info)
+void  RedisArgParse::SetHash(const std::string &key, const std::string &field, const std::string &value)
 {
 	//HMSET runoobkey name1 v1 name2 v2
 
@@ -79,10 +76,11 @@ void RedisArgParse::SetHash(const std::string &key, const std::string &field, co
 	m_vec_pchar.push_back(value.c_str());
 	m_vec_len.push_back(value.length());
 
-	InitRedisArgInfo(arg_info);
+	InitRedisArgInfo();
+	
 }
 
-void RedisArgParse::GetStr(const std::string &key, RedisArgInfo &arg_info)
+void  RedisArgParse::GetStr(const std::string &key)
 {
 	m_vec_pchar.clear();
 	m_vec_len.clear();
@@ -92,13 +90,14 @@ void RedisArgParse::GetStr(const std::string &key, RedisArgInfo &arg_info)
 	m_vec_pchar.push_back(key.c_str());
 	m_vec_len  .push_back(key.length());
 
-	InitRedisArgInfo(arg_info);
+	InitRedisArgInfo();
+	
 }
 
-void RedisArgParse::InitRedisArgInfo(RedisArgInfo &arg_info)
+void RedisArgParse::InitRedisArgInfo()
 {
-	arg_info.argc = m_vec_pchar.size();
-	arg_info.argv = &(m_vec_pchar[0]);
-	arg_info.argvlen = &(m_vec_len[0]);
+	argc = m_vec_pchar.size();
+	argv = &(m_vec_pchar[0]);
+	argvlen = &(m_vec_len[0]);
 
 }

@@ -1,6 +1,5 @@
 /*
-使用例子：
-
+封装hiredis.h，提供简单的原始字符串命令接口
 */
 
 #pragma once
@@ -25,12 +24,15 @@ public:
 	using UNIQUE_PTR = std::unique_ptr<redisReply, decltype(&RedisCon::FreeReplyObject)>;
 
 	~RedisCon();
-	//@wait_sec 连接等待时长
+	//@wait_sec 连接等待时长，秒。
 	bool Init(const std::string &ip, uint16_t port, uint32_t wait_sec=5);
 	//请求命令
 	//返回 redisReply *的unique_ptr,   返回值作用域结束，自动释放内存
 	//注意：反回值使用先判空，语法 nullptr != p.get() 
 	UNIQUE_PTR Cmd(const char *format, ...);
+	//@argc 参数数量
+	//@argv 参数数组指针
+	//@argvlen 参数数组长度列表
 	UNIQUE_PTR Cmd(int argc, const char **argv, const size_t *argvlen);
 
 };
@@ -41,7 +43,7 @@ class RedisAsynCon
 {
 private:
 	redisAsyncContext *m_c = nullptr;
-	bool m_isCanFree = true; //true表示允许用户销毁对象. 用来防止野指针
+	bool m_is_can_free = true; //true表示允许用户销毁对象. 用来防止野指针
 
 public:
 	~RedisAsynCon();
