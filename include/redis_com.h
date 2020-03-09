@@ -8,11 +8,13 @@ redis_client.h基础，实现大多数命令的简单接口。
 #pragma once
 
 #include "redis_client.h"
-#include "redis_parse_cmd.h"
 #include <list>
+#include <vector>
 
 namespace redis_com
 {
+	using VecFieldValue = std::vector< std::pair<std::string, std::string> >;
+	using VecMemberScore = std::vector< std::pair<std::string, uint64_t> >;
 	//阻塞同步方式
 	class RedisCom
 	{
@@ -100,11 +102,12 @@ namespace redis_com
 		friend class RedisAsynConAdapter;
 	private:
 		RedisAsynConAdapter m_client;
-		std::list<ReqInfo> m_req_info_list; //记录每个请求的信息, 等接受响应的时候获取信息。
-		uint64_t m_id_seed = 0;
+		std::list<ReqInfo>  m_req_info_list; //记录每个请求的信息, 等接受响应的时候获取信息。
+		uint64_t            m_id_seed = 0;
 
 	public:
-		~RedisAsynCom();
+		RedisAsynCom();
+		virtual ~RedisAsynCom() {};
 		bool Init(event_base *base, const std::string &ip, uint16_t port);
 		void Dicon();
 
@@ -125,8 +128,10 @@ namespace redis_com
 	private:
 		virtual void OnCon() = 0;
 		virtual void OnDisCon() = 0;
-		virtual void OnRev(const redisReply *reply, void *privdata) = 0; //reply 回调函数结束后，自动释放
+
 		virtual void OnDelKey(void *privdata, bool is_success) = 0;
+		virtual void OnSetStr(void *privdata, bool is_success) = 0;
+		virtual void OnGetStr(void *privdata, const std::string &value) = 0;
 
 		uint32_t PushReqInfo(void *privdata, RAM method);//返回新加req info id
 		bool PopReqInfo(uint64_t id, ReqInfo &req_info);

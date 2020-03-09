@@ -3,6 +3,7 @@
 #include "log_def.h"
 
 using namespace std;
+using namespace redis_com;
 
 void RedisArgParse::DelKey(const std::string &key)
 {

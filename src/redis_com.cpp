@@ -1,5 +1,6 @@
 #include "log_def.h"
 #include "redis_com.h"
+#include "redis_parse_cmd.h"
 
 using namespace std;
 
@@ -82,7 +83,19 @@ namespace redis_com
 		case RAM::DelKey:
 			m_com.OnDelKey(info.privdata, (1 == reply->integer));
 			break;
+		case RAM::SetStr:
+			m_com.OnSetStr(info.privdata, (string("OK") == reply->str));
+			break;
+		case RAM::GetStr:
+			m_com.OnGetStr(info.privdata, string(reply->str, reply->len));
+			break;
 		}
+	}
+
+	RedisAsynCom::RedisAsynCom()
+		:m_client(*this)
+	{
+
 	}
 
 	bool RedisAsynCom::Init(event_base *base, const std::string &ip, uint16_t port)
@@ -120,12 +133,18 @@ namespace redis_com
 
 	bool RedisAsynCom::SetStr(void *privdata, const std::string &key, const std::string &value)
 	{
-		return false;
+		RedisArgParse arg_info;
+		arg_info.SetStr(key, value);
+		uint64_t id = PushReqInfo(privdata, RAM::SetStr);
+		return m_client.CommandArgv((void *)id, arg_info.argc, arg_info.argv, arg_info.argvlen);
 	}
 
 	bool RedisAsynCom::GetStr(void *privdata, const std::string &key)
 	{
-		return false;
+		RedisArgParse arg_info;
+		arg_info.GetStr(key);
+		uint64_t id = PushReqInfo(privdata, RAM::GetStr);
+		return m_client.CommandArgv((void *)id, arg_info.argc, arg_info.argv, arg_info.argvlen);
 	}
 
 	bool RedisAsynCom::PopReqInfo(uint64_t id, ReqInfo &info)

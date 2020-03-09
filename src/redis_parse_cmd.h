@@ -1,15 +1,18 @@
 /*
 解析 简单参数格式 成 redis 命令 
+example:
+		RedisArgParse arg_info;
+		arg_info.SetStr(key, value);
+		RedisCon::UNIQUE_PTR r = m_client.Cmd(arg_info.argc, arg_info.argv, arg_info.argvlen);
 */
 
 #pragma once
 
 #include <vector>
 #include <string>
+#include "redis_com.h"
 
 
-using VecFieldValue = std::vector< std::pair<std::string, std::string> >;
-using VecMemberScore = std::vector< std::pair<std::string, uint64_t> >;
 
 
 
@@ -34,19 +37,19 @@ struct RedisArgParse
 
 	//哈希(Hash)
 	//---------------------------------------------------------------------
-	void  SetHash(const std::string &key, const VecFieldValue &vec_field_value);
+	void  SetHash(const std::string &key, const redis_com::VecFieldValue &vec_field_value);
 	void  SetHash(const std::string &key, const std::string &field, const std::string &value);
 	void  GetHash(const std::string &key, const std::string &field, std::string &value);
-	void  GetAllHash(const std::string &key, VecFieldValue &vec_field_value);
+	void  GetAllHash(const std::string &key, redis_com::VecFieldValue &vec_field_value);
 
 	//有序集合(sorted set)
 	//---------------------------------------------------------------------
 	void  SetZSet(const std::string &key, const std::string &member, int64_t score);
-	void  SetZSet(const std::string &key, const VecMemberScore &vec_m_s);
+	void  SetZSet(const std::string &key, const redis_com::VecMemberScore &vec_m_s);
 	//获取区间[start_idx, stop_idx]成员 
 	//@start_idx, stop_idx  指定索引
-	void  GetZSetRange(const std::string &key, uint32_t start_idx, uint32_t stop_idx, VecMemberScore &vec_m_s);
-	void  GetZSetAll(const std::string &key, VecMemberScore &vec_m_s);
+	void  GetZSetRange(const std::string &key, uint32_t start_idx, uint32_t stop_idx, redis_com::VecMemberScore &vec_m_s);
+	void  GetZSetAll(const std::string &key, redis_com::VecMemberScore &vec_m_s);
 	void  GetZSetIdx(const std::string &key, const std::string &member); //获取排名索引。 0开始
 	void  GetZSetScore(const std::string &key, const std::string &member);
 

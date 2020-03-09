@@ -44,7 +44,7 @@ class RedisAsynCon
 private:
 	redisAsyncContext *m_c = nullptr;
 	bool m_is_can_free = true; //true表示允许用户销毁对象. 用来防止野指针
-
+	bool m_is_del = false; //true 表示进入析构函数。 避免调用虚函数用
 public:
 	~RedisAsynCon();
 	bool Init(event_base *base,const std::string &ip, uint16_t port);
