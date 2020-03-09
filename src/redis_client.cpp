@@ -66,6 +66,7 @@ RedisCon::UNIQUE_PTR RedisCon::Cmd(int argc, const char **argv, const size_t *ar
 
 RedisAsynCon::~RedisAsynCon()
 {
+	m_is_del = true;
 	Dicon();
 }
 
@@ -174,7 +175,10 @@ void RedisAsynCon::disconnectCallback(const redisAsyncContext *c, int status)
 		return;
 	}
 	RedisAsynCon *obj = (RedisAsynCon*)c->data;
-	obj->m_is_can_free = false; //禁止回调里面释放对象。 回调结束，系统还是引用了本对象。
-	obj->OnDisCon();
-	obj->m_is_can_free = true;
+	if (!obj->m_is_del) //析构函数不能调用虚函数
+	{
+		obj->m_is_can_free = false; //禁止回调里面释放对象。 回调结束，系统还是引用了本对象。
+		obj->OnDisCon();
+		obj->m_is_can_free = true;
+	}
 }
