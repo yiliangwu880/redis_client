@@ -116,7 +116,8 @@ namespace redis_com
 						v.second = reply->element[i]->str;
 						vec.push_back(v);
 					}
-				}
+				}
+
 				m_com.OnGetAllHash(info.privdata, vec);
 			}
 			break;
